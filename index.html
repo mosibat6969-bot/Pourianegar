@@ -117,7 +117,7 @@ const galaxyStars = [], bgStars = [];
     if(Math.random() < 0.04) col = [255, 122, 184];
     const c = `rgba(${col[0]|0},${col[1]|0},${col[2]|0},0.95)`;
     // سایز پایه بسیار ریز شد
-    galaxyStars.push({ x: Math.cos(angle)*r+rx, y: ry, z: Math.sin(angle)*r+rz, c: c, s: 0.03 + Math.random()*0.05 });
+    galaxyStars.push({ x: Math.cos(angle)*r+rx, y: ry, z: Math.sin(angle)*r+rz, c: c, s: 0.01 + Math.random()*0.02 });
   }
   for(let i=0;i<4000;i++){
     const r = Math.pow(Math.random(), 2.2) * 7;
