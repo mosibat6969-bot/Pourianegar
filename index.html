@@ -48,7 +48,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:syste
 </style>
 </head>
 <body>
-<canvas id="game"></canvas>
+  <canvas id="game"></canvas>
 <div id="quizBar">
   <div id="quizCard">
     <div id="quizLabel"><span id="quizNum">سوال ۱ از ۲۵</span><span id="discovered">اجرام کشف‌شده: ۰/۹</span></div>
@@ -239,8 +239,7 @@ const pointers = new Map();
 let dragState = null, pinchDist = null;
 let easterActive = false, easterTime = 0, easterSprites = [];
 let lastEaster = 0;
-
-const camPos = {x:0,y:0,z:0};
+  const camPos = {x:0,y:0,z:0};
 const view = {rx:1,ry:0,rz:0, ux:0,uy:1,uz:0, fx:0,fy:0,fz:-1};
 function updateView(){
   camPos.x = camRadius * Math.sin(phi) * Math.cos(theta);
@@ -410,7 +409,9 @@ function render(){
     if(!p || p.x < -5 || p.x > W+5 || p.y < -5 || p.y > H+5) continue;
     const sz = Math.max(1, s.s * focal / p.z);
     ctx.fillStyle = s.c;
-    ctx.fillRect(p.x - sz/2, p.y - sz/2, sz, sz);
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, sz * 0.6, 0, Math.PI * 2);
+    ctx.fill();
   }
   const ca = Math.cos(galaxyAngle), sa = Math.sin(galaxyAngle);
   for(let i=0;i<galaxyStars.length;i++){
@@ -421,7 +422,9 @@ function render(){
     if(!p || p.x < -5 || p.x > W+5 || p.y < -5 || p.y > H+5) continue;
     const sz = Math.max(1, s.s * focal / p.z);
     ctx.fillStyle = s.c;
-    ctx.fillRect(p.x - sz/2, p.y - sz/2, sz, sz);
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, sz * 0.6, 0, Math.PI * 2);
+    ctx.fill();
   }
   ctx.globalCompositeOperation = 'source-over';
   drawSun();
@@ -767,4 +770,3 @@ document.getElementById('restartBtn').addEventListener('click', () => {
 </script>
 </body>
 </html>
-```
