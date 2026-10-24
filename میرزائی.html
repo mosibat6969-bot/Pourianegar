@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>کاوش کهکشان راه شیری</title>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{ --glass: rgba(14,18,40,.82); --gold:#ffd27a; }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+  html,body{ margin:0; height:100%; overflow:hidden; background:#000; font-family:'Vazirmatn',Tahoma,sans-serif; color:#e8ecff; }
+  canvas{ display:block; touch-action:none; }
+  #quizBar{ position:fixed; top:0; left:0; right:0; padding:calc(8px + env(safe-area-inset-top)) 12px 10px; background:linear-gradient(180deg, rgba(6,8,20,.96), rgba(6,8,20,0)); pointer-events:none; z-index:10;}
+  #quizCard{ pointer-events:auto; background:var(--glass); border:1px solid rgba(120,150,255,.25); border-radius:16px; padding:11px 13px; backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); box-shadow:0 8px 30px rgba(0,0,0,.5); max-height:46vh; overflow-y:auto;}
+  #quizLabel{ font-size:10.5px; color:#8fa4ff; margin-bottom:5px; display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap;}
+  #quizQ{ font-size:13.5px; font-weight:500; line-height:1.55; margin-bottom:8px;}
+  #mcOptions{ display:flex; flex-direction:column; gap:5px; margin-bottom:6px;}
+  .mcOpt{ background:rgba(120,150,255,.10); border:1px solid rgba(120,150,255,.22); color:#e8ecff; padding:9px 11px; border-radius:9px; font-family:inherit; font-size:12px; text-align:right; cursor:pointer; transition:.15s; line-height:1.4;}
+  .mcOpt:active{ transform:scale(.97); background:rgba(120,150,255,.28); }
+  .mcOpt.correct{ background:rgba(111,220,140,.3); border-color:#6fdc8c; }
+  .mcOpt.wrong{ background:rgba(255,100,100,.3); border-color:#ff6464; }
+  #progressBar{ height:3px; background:rgba(255,255,255,.1); border-radius:2px; margin-top:6px; overflow:hidden;}
+  #progressFill{ height:100%; background:linear-gradient(90deg,#6fdc8c,#7aa2ff); border-radius:2px; transition:width .3s; width:0%;}
+  #infoPanel{ position:fixed; left:0; right:0; bottom:0; max-height:68vh; overflow:auto; transform:translateY(110%); transition:transform .35s cubic-bezier(.2,.8,.2,1); background:var(--glass); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border-radius:22px 22px 0 0; border-top:1px solid rgba(120,150,255,.3); padding:16px 18px calc(18px + env(safe-area-inset-bottom)); z-index:20; box-shadow:0 -10px 40px rgba(0,0,0,.6);}
+  #infoPanel.open{ transform:translateY(0); }
+  .pHead{ display:flex; align-items:center; gap:12px; margin-bottom:12px;}
+  .pDot{ width:36px; height:36px; border-radius:50%; flex:none; box-shadow:0 0 20px currentColor; }
+  .pName{ font-size:19px; font-weight:700; }
+  .pType{ font-size:11.5px; color:#9fb0e8; }
+  .stats{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px;}
+  .stat{ background:rgba(255,255,255,.05); border-radius:10px; padding:8px 10px; }
+  .stat b{ display:block; font-size:10px; color:#8fa4ff; font-weight:400; margin-bottom:2px;}
+  .stat span{ font-size:12px; }
+  .pDesc{ font-size:12.5px; line-height:1.85; color:#c6d0f5; margin-bottom:12px;}
+  .factCard{ background:rgba(120,150,255,.07); border:1px solid rgba(120,150,255,.18); border-radius:10px; padding:9px 11px; margin-bottom:7px;}
+  .factCard b{ display:block; font-size:11px; color:var(--gold); margin-bottom:3px; font-weight:500;}
+  .factCard span{ font-size:11.5px; line-height:1.75; color:#c6d0f5;}
+  .btn{ display:block; width:100%; padding:13px; border-radius:12px; border:none; font-family:inherit; font-size:14px; font-weight:600; cursor:pointer; transition:transform .15s;}
+  .btn:active{ transform:scale(.97); }
+  .btnAns{ background:linear-gradient(135deg,#3d6bff,#7a5cff); color:#fff; box-shadow:0 6px 20px rgba(80,110,255,.4); margin-bottom:8px;}
+  .btnClose{ background:rgba(255,255,255,.08); color:#c6d0f5; }
+  #toast{ position:fixed; left:50%; top:46%; transform:translate(-50%,10px); background:rgba(20,25,50,.96); border:1px solid rgba(120,150,255,.3); padding:12px 22px; border-radius:30px; font-size:13px; opacity:0; transition:.3s; pointer-events:none; z-index:30; white-space:nowrap; max-width:90vw; text-align:center;}
+  #toast.show{ opacity:1; transform:translate(-50%,0); }
+  #startOverlay,#winOverlay{ position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:30px; z-index:50; background:radial-gradient(ellipse at center, rgba(10,14,40,.9), rgba(0,0,5,.98)); backdrop-filter:blur(6px); transition:opacity .5s; }
+  #winOverlay{ display:none; }
+  .title{ font-size:28px; font-weight:700; background:linear-gradient(135deg,#ffd27a,#7aa2ff,#c58bff); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:12px;}
+  .sub{ font-size:13px; color:#9fb0e8; line-height:2; max-width:340px; margin-bottom:24px;}
+  .startBtn{ padding:15px 44px; font-size:16px; font-weight:700; border-radius:40px; border:none; cursor:pointer; font-family:inherit; background:linear-gradient(135deg,#3d6bff,#7a5cff); color:#fff; box-shadow:0 10px 40px rgba(90,110,255,.5);}
+  .startBtn:disabled{ opacity:.4; }
+  #hint{ position:fixed; bottom:calc(14px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%); font-size:10.5px; color:rgba(200,210,255,.55); z-index:5; pointer-events:none; white-space:nowrap; transition:opacity 1s;}
+  .errBox{ background:rgba(255,60,60,.12); border:1px solid #ff6464; border-radius:14px; padding:18px; max-width:340px; direction:rtl;}
+  .errBox h3{ color:#ff6464; margin:0 0 10px; font-size:17px; }
+  .errBox p{ color:#e0c0c0; font-size:12.5px; line-height:1.9; margin:0 0 8px; }
+  @media(min-width:720px){
+    #infoPanel{ left:auto; right:16px; bottom:16px; width:380px; border-radius:20px; max-height:76vh; }
+    #toast{ top:130px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="quizBar">
+  <div id="quizCard">
+    <div id="quizLabel"><span id="quizNum">سوال ۱ از ۲۵</span><span id="discovered">اجرام کشف‌شده: ۰/۹</span></div>
+    <div id="quizQ">در حال بارگذاری…</div>
+    <div id="mcOptions"></div>
+    <div id="progressBar"><div id="progressFill"></div></div>
+  </div>
+</div>
+
+<div id="infoPanel">
+  <div class="pHead">
+    <div class="pDot" id="pDot"></div>
+    <div><div class="pName" id="pName"></div><div class="pType" id="pType"></div></div>
+  </div>
+  <div class="stats" id="pStats"></div>
+  <div class="pDesc" id="pDesc"></div>
+  <div id="pFacts"></div>
+  <button class="btn btnAns" id="btnAns">✅ این جواب سوال است</button>
+  <button class="btn btnClose" id="btnClose">بستن</button>
+</div>
+
+<div id="toast"></div>
+<div id="hint">بکش تا بچرخد • رها کن تا با سرعت بچرخد • تپ = توقف</div>
+
+<div id="startOverlay">
+  <div class="title">🌌 کهکشان راه شیری</div>
+  <div class="sub">یک سفر اکتشافی در منظومه شمسی.<br>با انگشت کهکشان را بچرخان، رهایش کن تا با مومنتوم بچرخد، روی سیارات و ماه بزن و به ۲۵ سوال بالای صفحه جواب بده.<br>هر جواب درست، سوال بعدی را باز می‌کند.<br><span style="font-size:11px;color:#6f7fb0;">💫 شاید یک راز در دل خورشید باشد...</span></div>
+  <button class="startBtn" id="startBtn" disabled>در حال بارگذاری...</button>
+</div>
+
+<div id="winOverlay">
+  <div class="title">🎉 ماموریت کامل شد!</div>
+  <div class="sub">همه ۲۵ سوال را پاسخ دادی و منظومه شمسی را کشف کردی. حالا می‌توانی آزادانه در کهکشان بگردی.</div>
+  <button class="startBtn" id="restartBtn">دوباره بازی کن</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+  if (typeof THREE === 'undefined') {
+    document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"><\/script>');
+  }
+</script>
+<script>
+  if (typeof THREE === 'undefined') {
+    document.write('<script src="https://unpkg.com/three@0.128.0/build/three.min.js"><\/script>');
+  }
+</script>
+
+<script>
+(function(){
+  'use strict';
+
+  var startOverlay = document.getElementById('startOverlay');
+  if (typeof THREE === 'undefined') {
+    startOverlay.innerHTML =
+      '<div class="errBox">' +
+        '<h3>⚠️ خطا در بارگذاری کتابخانه</h3>' +
+        '<p>کتابخانه گرافیکی Three.js بارگذاری نشد.</p>' +
+        '<p>۱. اینترنت گوشی را بررسی کنید.</p>' +
+        '<p>۲. اگر فیلترشکن دارید، روشن کنید و صفحه را دوباره باز کنید.</p>' +
+        '<p>۳. صفحه را ببندید و مجدداً باز کنید.</p>' +
+      '</div>';
+    return;
+  }
+
+  var clamp = function(v,a,b){ return Math.max(a, Math.min(b, v)); };
+
+  function radialTexture(stops){
+    var s=256, c=document.createElement('canvas'); c.width=c.height=s;
+    var ctx=c.getContext('2d');
+    var g=ctx.createRadialGradient(s/2,s/2,0,s/2,s/2,s/2);
+    for(var i=0;i<stops.length;i++) g.addColorStop(stops[i][0], stops[i][1]);
+    ctx.fillStyle=g; ctx.fillRect(0,0,s,s);
+    return new THREE.CanvasTexture(c);
+  }
+  var starTex = radialTexture([[0,'rgba(255,255,255,1)'],[0.25,'rgba(255,255,255,.85)'],[1,'rgba(255,255,255,0)']]);
+  var warmGlowTex = radialTexture([[0,'rgba(255,250,220,1)'],[0.15,'rgba(255,210,130,.75)'],[0.45,'rgba(255,150,60,.2)'],[1,'rgba(255,120,40,0)']]);
+
+  var scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x02030a);
+  var camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.1, 3000);
+  var renderer = new THREE.WebGLRenderer({ antialias: devicePixelRatio < 2 });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setSize(innerWidth, innerHeight);
+  document.body.appendChild(renderer.domElement);
+  var canvas = renderer.domElement;
+
+  scene.add(new THREE.AmbientLight(0x8899ff, 0.4));
+  scene.add(new THREE.PointLight(0xfff0d0, 2.2, 0, 0));
+
+  // ستاره‌های پس‌زمینه
+  (function(){
+    var N=2500, pos=new Float32Array(N*3), col=new Float32Array(N*3), tmp=new THREE.Color();
+    for(var i=0;i<N;i++){
+      var r=200+Math.random()*300;
+      var th=Math.random()*Math.PI*2, ph=Math.acos(Math.random()*2-1);
+      pos[i*3]=r*Math.sin(ph)*Math.cos(th);
+      pos[i*3+1]=r*Math.cos(ph);
+      pos[i*3+2]=r*Math.sin(ph)*Math.sin(th);
+      tmp.setHSL(0.55+Math.random()*0.15, 0.3, 0.6+Math.random()*0.4);
+      col[i*3]=tmp.r; col[i*3+1]=tmp.g; col[i*3+2]=tmp.b;
+    }
+    var g=new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(pos,3));
+    g.setAttribute('color', new THREE.BufferAttribute(col,3));
+    scene.add(new THREE.Points(g, new THREE.PointsMaterial({
+      size:1.6, map:starTex, vertexColors:true, transparent:true, depthWrite:false,
+      blending:THREE.AdditiveBlending, sizeAttenuation:true
+    })));
+  })();
+
+  // کهکشان
+  var galaxyGroup = new THREE.Group();
+  scene.add(galaxyGroup);
+
+  function starLayer(count, size, boost){
+    var R=34, BRANCHES=4;
+    var pos=new Float32Array(count*3), col=new Float32Array(count*3);
+    var cIn=new THREE.Color('#ffe6b8'), cMid=new THREE.Color('#cfe0ff'), cOut=new THREE.Color('#6f7dff');
+    var cPink=new THREE.Color('#ff7ab8');
+    var tmp=new THREE.Color();
+    for(var i=0;i<count;i++){
+      var r=Math.pow(Math.random(),1.4)*R;
+      var branchAngle=(i%BRANCHES)/BRANCHES*Math.PI*2;
+      var angle=branchAngle + r*0.22;
+      var randAmt=(0.4+r*0.045)*2.2;
+      var rx=(Math.pow(Math.random(),3)*(Math.random()<.5?1:-1))*randAmt;
+      var rz=(Math.pow(Math.random(),3)*(Math.random()<.5?1:-1))*randAmt;
+      var ry=(Math.pow(Math.random(),3)*(Math.random()<.5?1:-1))*(2.0*(1-r/R*0.7)+0.12);
+      pos[i*3]=Math.cos(angle)*r+rx;
+      pos[i*3+1]=ry;
+      pos[i*3+2]=Math.sin(angle)*r+rz;
+      var t=r/R;
+      if(t<0.5) tmp.copy(cIn).lerp(cMid,t/0.5);
+      else tmp.copy(cMid).lerp(cOut,(t-0.5)/0.5);
+      if(Math.random()<0.04) tmp.lerp(cPink,0.6);
+      tmp.offsetHSL(0,0,(Math.random()-0.5)*0.12 + boost);
+      col[i*3]=tmp.r; col[i*3+1]=tmp.g; col[i*3+2]=tmp.b;
+    }
+    var geo=new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
+    geo.setAttribute('color', new THREE.BufferAttribute(col,3));
+    return new THREE.Points(geo, new THREE.PointsMaterial({
+      size:size, map:starTex, vertexColors:true, transparent:true, depthWrite:false,
+      blending:THREE.AdditiveBlending, sizeAttenuation:true
+    }));
+  }
+  galaxyGroup.add(starLayer(45000, 0.10, 0));
+  galaxyGroup.add(starLayer(3500, 0.30, 0.05));
+
+  (function(){
+    var N=7000, pos=new Float32Array(N*3), col=new Float32Array(N*3), tmp=new THREE.Color();
+    var c1=new THREE.Color('#fff3d0'), c2=new THREE.Color('#ffb56b');
+    for(var i=0;i<N;i++){
+      var r=Math.pow(Math.random(),2.2)*7;
+      var th=Math.random()*Math.PI*2, ph=Math.acos(Math.random()*2-1);
+      pos[i*3]=r*Math.sin(ph)*Math.cos(th);
+      pos[i*3+1]=r*Math.cos(ph)*0.7;
+      pos[i*3+2]=r*Math.sin(ph)*Math.sin(th);
+      tmp.copy(c1).lerp(c2,Math.random());
+      col[i*3]=tmp.r; col[i*3+1]=tmp.g; col[i*3+2]=tmp.b;
+    }
+    var g=new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(pos,3));
+    g.setAttribute('color', new THREE.BufferAttribute(col,3));
+    galaxyGroup.add(new THREE.Points(g, new THREE.PointsMaterial({
+      size:0.16, map:starTex, vertexColors:true, transparent:true, depthWrite:false,
+      blending:THREE.AdditiveBlending, sizeAttenuation:true
+    })));
+  })();
+
+  (function(){
+    var colors=[0xff7ab8,0x7a9bff,0x9b7aff,0xffb56b,0x6fd8ff,0xff6f9b];
+    for(var i=0;i<10;i++){
+      var r=8+Math.random()*22;
+      var a=Math.random()*Math.PI*2;
+      var sp=new THREE.Sprite(new THREE.SpriteMaterial({
+        map:starTex, color:colors[i%colors.length], transparent:true, opacity:0.10,
+        blending:THREE.AdditiveBlending, depthWrite:false
+      }));
+      sp.position.set(Math.cos(a)*r, (Math.random()-0.5)*2, Math.sin(a)*r);
+      var s=8+Math.random()*14;
+      sp.scale.set(s,s,1);
+      galaxyGroup.add(sp);
+    }
+  })();
+
+  // خورشید
+  var sun = new THREE.Mesh(
+    new THREE.SphereGeometry(1.0, 32, 24),
+    new THREE.MeshBasicMaterial({ color:0xffe0a0 })
+  );
+  scene.add(sun);
+  var sunGlow1 = new THREE.Sprite(new THREE.SpriteMaterial({
+    map:warmGlowTex, color:0xffdd99, transparent:true, opacity:0.9,
+    blending:THREE.AdditiveBlending, depthWrite:false
+  }));
+  sunGlow1.scale.set(8,8,1); scene.add(sunGlow1);
+  var sunGlow2 = new THREE.Sprite(new THREE.SpriteMaterial({
+    map:warmGlowTex, color:0xffaa55, transparent:true, opacity:0.35,
+    blending:THREE.AdditiveBlending, depthWrite:false
+  }));
+  sunGlow2.scale.set(22,22,1); scene.add(sunGlow2);
+
+  // داده‌ها
+  var PLANETS = [
+    { id:'mercury', name:'عطارد', type:'سیاره سنگی', kind:'rocky', color:0x9a8f86, size:0.30, orbit:3.2, speed:1.6, angle0:0.5,
+      stats:{'دمای سطح':'−۱۷۳ تا ۴۲۷ °C','طول روز':'۵۹ روز زمینی','طول سال':'۸۸ روز زمینی','تعداد قمر':'۰'},
+      desc:'عطارد کوچک‌ترین سیاره منظومه شمسی و نزدیک‌ترین سیاره به خورشید است. جو آن تقریباً وجود ندارد و سطحش پر از دهانه‌های برخوردی است.' },
+    { id:'venus', name:'زهره', type:'سیاره سنگی', kind:'rocky', color:0xe8c98a, size:0.42, orbit:4.4, speed:1.15, angle0:2.1,
+      stats:{'دمای سطح':'۴۶۲ °C','طول روز':'۲۴۳ روز زمینی','طول سال':'۲۲۵ روز زمینی','تعداد قمر':'۰'},
+      desc:'زهره گرم‌ترین سیاره منظومه شمسی است. جو غلیظ دی‌اکسید کربن آن اثر گلخانه‌ای شدیدی ایجاد می‌کند و برخلاف بقیه سیارات در جهت مخالف می‌چرخد.' },
+    { id:'earth', name:'زمین', type:'سیاره سنگی', kind:'earth', color:0x3a7bd5, size:0.45, orbit:5.6, speed:0.9, angle0:4.0,
+      stats:{'دمای سطح':'میانگین ۱۵ °C','طول روز':'۲۴ ساعت','طول سال':'۳۶۵ روز','تعداد قمر':'۱'},
+      desc:'زمین تنها سیاره‌ای است که در آن حیات شناخته‌شده وجود دارد. وجود آب مایع، جو مناسب و فاصله مناسب از خورشید، شرایط زندگی گیاهان و جانوران را فراهم کرده است. چرخش زمین به دور خودش شبانه‌روز را به وجود می‌آورد و حرکت آن به دور خورشید مبنای تقویم شمسی است. 🌙 ماه به دور زمین می‌گردد — روی آن کلیک کن!' },
+    { id:'mars', name:'مریخ', type:'سیاره سنگی', kind:'rocky', color:0xc1440e, size:0.34, orbit:6.8, speed:0.75, angle0:5.6,
+      stats:{'دمای سطح':'میانگین −۶۳ °C','طول روز':'۲۴.۶ ساعت','طول سال':'۶۸۷ روز زمینی','تعداد قمر':'۲'},
+      desc:'مریخ به دلیل وجود اکسید آهن در خاکش «سیاره سرخ» نامیده می‌شود و به همین دلیل در آسمان قرمز رنگ دیده می‌شود. بلندترین کوه منظومه شمسی، المپوس مونس، در این سیاره قرار دارد.' },
+    { id:'jupiter', name:'مشتری', type:'غول گازی', kind:'gas', color:0xd8a878, size:0.95, orbit:8.6, speed:0.42, angle0:1.2,
+      stats:{'دمای سطح':'−۱۴۵ °C','طول روز':'۹.۹ ساعت','طول سال':'۱۲ سال زمینی','تعداد قمر':'۹۵'},
+      desc:'مشتری بزرگ‌ترین سیاره منظومه شمسی است. یک سال آن حدود ۱۲ برابر زمین طول می‌کشد. لکه سرخ بزرگ آن یک طوفان عظیم است.' },
+    { id:'saturn', name:'زحل', type:'غول گازی', kind:'gas', color:0xe3d1a0, size:0.82, orbit:10.6, speed:0.31, angle0:3.3, ring:true,
+      stats:{'دمای سطح':'−۱۷۸ °C','طول روز':'۱۰.۷ ساعت','طول سال':'۲۹ سال زمینی','تعداد قمر':'۲۷۴'},
+      desc:'زحل زیباترین سیاره منظومه شمسی است و به خاطر حلقه‌های باشکوهش شهرت دارد. این حلقه‌ها از میلیاردها ذره یخ و سنگ ساخته شده‌اند.' },
+    { id:'uranus', name:'اورانوس', type:'غول یخی', kind:'ice', color:0x7fd6e0, size:0.60, orbit:12.6, speed:0.22, angle0:5.0,
+      stats:{'دمای سطح':'−۲۲۴ °C','طول روز':'۱۷.۲ ساعت','طول سال':'۸۴ سال زمینی','تعداد قمر':'۲۸'},
+      desc:'اورانوس سردترین جو منظومه شمسی را دارد. این سیاره با زاویه ۹۸ درجه به پهلو می‌چرخد. رنگ آبی آن به دلیل وجود متان در جو است.' },
+    { id:'neptune', name:'نپتون', type:'غول یخی', kind:'ice', color:0x3b5bdb, size:0.58, orbit:14.6, speed:0.17, angle0:0.2,
+      stats:{'دمای سطح':'−۲۱۴ °C','طول روز':'۱۶ ساعت','طول سال':'۱۶۵ سال زمینی','تعداد قمر':'۱۶'},
+      desc:'نپتون دورترین سیاره منظومه شمسی و دارای سریع‌ترین بادهای منظومه شمسی است. این سیاره به کمک محاسبات ریاضی کشف شد.' }
+  ];
+
+  var MOON_DATA = {
+    id:'moon', name:'ماه', type:'قمر طبیعی زمین', color:0xd0d0d0,
+    stats:{'فاصله از زمین':'۳۸۴,۴۰۰ کیلومتر','دوره گردش':'۲۷.۳ روز','منبع نور':'بازتاب نور خورشید','اولین سفر انسان':'آپولو ۱۱ (۱۹۶۹)'},
+    desc:'ماه تنها قمر طبیعی زمین است. ماه از خود نوری ندارد و نور خورشید را بازتاب می‌دهد. گردش ماه به دور زمین باعث به وجود آمدن فازهای ماه (هلال، بدر، ماه کامل) می‌شود. در روزهای ۱۴ و ۱۵ هر ماه قمری، ماه کامل و شب مهتابی است. اولین سفر فضایی انسان در سال ۱۹۶۹ با آپولو ۱۱ به ماه انجام شد.'
+  };
+
+  var SUN_DATA = {
+    id:'sun', name:'خورشید', type:'ستاره (کوتوله زرد)', color:0xffdd88,
+    stats:{'دمای سطح':'۵,۵۰۰ °C','دمای هسته':'۱۵ میلیون °C','سن':'۴.۶ میلیارد سال','جرم':'۹۹.۸٪ منظومه'},
+    desc:'خورشید ستاره مرکزی منظومه شمسی و نزدیک‌ترین ستاره به زمین است و ۹۹.۸ درصد جرم کل منظومه را تشکیل می‌دهد.',
+    facts:[
+      { t:'نزدیک‌ترین ستاره به زمین', d:'خورشید نزدیک‌ترین ستاره به زمین است. فاصله آن حدود ۱۵۰ میلیون کیلومتر است.' },
+      { t:'منظومه شمسی چیست؟', d:'منظومه شمسی شامل خورشید و تمام اجرامی است که به دور آن می‌گردند: ۸ سیاره، قمرها، سیارک‌ها و دنباله‌دارها.' },
+      { t:'فرق ستاره و سیاره', d:'ستاره‌ها نور خود را تولید می‌کنند، اما سیاره‌ها نور ستاره‌ها را بازتاب می‌دهند.' },
+      { t:'فاصله ستاره‌ها', d:'فاصله ستاره‌ها از زمین یکسان نیست. نزدیک‌ترین ستاره بعد از خورشید، پروکسیما قنطورس است که ۴.۲ سال نوری فاصله دارد.' },
+      { t:'چرا ستاره‌ها در روز دیده نمی‌شوند؟', d:'نور شدید خورشید در روز باعث می‌شود ستاره‌های دیگر محو شوند.' },
+      { t:'چرا سیارات برخورد نمی‌کنند؟', d:'هر سیاره در مدار مشخص خود به دور خورشید می‌گردد و نیروی جاذبه خورشید آن را در مسیرش نگه می‌دارد.' },
+      { t:'مدار چیست؟', d:'به مسیر حرکت سیارات و اجرام آسمانی به دور خورشید، مدار می‌گویند.' }
+    ]
+  };
+
+  function planetTexture(hex, kind){
+    var w=512, h=256;
+    var cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+    var ctx=cv.getContext('2d');
+    var base=new THREE.Color(hex);
+    ctx.fillStyle='#'+base.getHexString(); ctx.fillRect(0,0,w,h);
+    var blobs=function(color,alpha,count,rMin,rMax){
+      ctx.globalAlpha=alpha;
+      for(var i=0;i<count;i++){
+        ctx.fillStyle=color;
+        ctx.beginPath();
+        ctx.arc(Math.random()*w, Math.random()*h, rMin+Math.random()*(rMax-rMin), 0, 7);
+        ctx.fill();
+      }
+      ctx.globalAlpha=1;
+    };
+    if(kind==='gas'){
+      for(var y=0;y<h;y+=2){
+        var t=y/h;
+        var shade=Math.sin(t*Math.PI*7)*0.10 + Math.sin(t*Math.PI*3+1)*0.06;
+        ctx.fillStyle='#'+base.clone().offsetHSL(0,0,shade).getHexString();
+        ctx.fillRect(0,y,w,2);
+      }
+      blobs('#ffffff',0.05,300,4,18);
+      blobs('#000000',0.05,200,6,22);
+    } else if(kind==='earth'){
+      ctx.fillStyle='#123c78'; ctx.fillRect(0,0,w,h);
+      ctx.fillStyle='#3f8f4f';
+      for(var i=0;i<30;i++){
+        ctx.beginPath();
+        ctx.ellipse(Math.random()*w, Math.random()*h, 18+Math.random()*55, 10+Math.random()*32, Math.random()*3, 0, 7);
+        ctx.fill();
+      }
+      blobs('#ffffff',0.16,70,8,30);
+      ctx.fillStyle='rgba(255,255,255,.8)';
+      ctx.fillRect(0,0,w,10); ctx.fillRect(0,h-10,w,10);
+    } else if(kind==='ice'){
+      for(var y2=0;y2<h;y2+=2){
+        var t2=y2/h;
+        ctx.fillStyle='#'+base.clone().offsetHSL(0,0,Math.sin(t2*Math.PI*4)*0.05).getHexString();
+        ctx.fillRect(0,y2,w,2);
+      }
+      blobs('#ffffff',0.09,200,5,18);
+    } else {
+      blobs('#000000',0.09,400,3,14);
+      blobs('#ffffff',0.06,400,2,10);
+    }
+    return new THREE.CanvasTexture(cv);
+  }
+
+  var planetObjs = [];
+  var hitMeshes = [];
+
+  function makeHit(radius, id){
+    var m = new THREE.Mesh(
+      new THREE.SphereGeometry(radius, 8, 6),
+      new THREE.MeshBasicMaterial({ visible:false })
+    );
+    m.userData.planetId = id;
+    hitMeshes.push(m);
+    return m;
+  }
+
+  var sunHit = makeHit(1.8, 'sun');
+  scene.add(sunHit);
+
+  for(var pi=0; pi<PLANETS.length; pi++){
+    var p = PLANETS[pi];
+    var pivot = new THREE.Group();
+    scene.add(pivot);
+    var mat = new THREE.MeshStandardMaterial({
+      map: planetTexture(p.color, p.kind),
+      roughness: 1, metalness: 0,
+      emissive: new THREE.Color(p.color).multiplyScalar(0.12)
+    });
+    var mesh = new THREE.Mesh(new THREE.SphereGeometry(p.size, 32, 24), mat);
+    pivot.add(mesh);
+    var halo = new THREE.Sprite(new THREE.SpriteMaterial({
+      map:starTex, color:p.color, transparent:true, opacity:0.5,
+      blending:THREE.AdditiveBlending, depthWrite:false
+    }));
+    halo.scale.set(p.size*6, p.size*6, 1);
+    pivot.add(halo);
+
+    var ring = null;
+    if(p.ring){
+      ring = new THREE.Group();
+      ring.add(new THREE.Mesh(
+        new THREE.RingGeometry(p.size*1.45, p.size*2.05, 64),
+        new THREE.MeshBasicMaterial({ color:0xd8c8a0, transparent:true, opacity:0.55, side:THREE.DoubleSide })
+      ));
+      ring.add(new THREE.Mesh(
+        new THREE.RingGeometry(p.size*2.15, p.size*2.4, 64),
+        new THREE.MeshBasicMaterial({ color:0xb8a880, transparent:true, opacity:0.35, side:THREE.DoubleSide })
+      ));
+      ring.rotation.x = -Math.PI/2 + 0.22;
+      pivot.add(ring);
+    }
+
+    var hit = makeHit(Math.max(p.size*3, 0.85), p.id);
+    pivot.add(hit);
+
+    var moonHolder = null;
+    if(p.id === 'earth'){
+      moonHolder = new THREE.Group();
+      pivot.add(moonHolder);
+      var mSize = 0.14;
+      var mMesh = new THREE.Mesh(
+        new THREE.SphereGeometry(mSize, 24, 18),
+        new THREE.MeshStandardMaterial({
+          map: planetTexture(0xd0d0d0, 'rocky'),
+          roughness: 1, metalness: 0,
+          emissive: new THREE.Color(0x444444)
+        })
+      );
+      mMesh.position.set(1.15, 0.15, 0);
+      moonHolder.add(mMesh);
+      var mHalo = new THREE.Sprite(new THREE.SpriteMaterial({
+        map:starTex, color:0xd0d0d0, transparent:true, opacity:0.55,
+        blending:THREE.AdditiveBlending, depthWrite:false
+      }));
+      mHalo.position.copy(mMesh.position);
+      mHalo.scale.set(mSize*8, mSize*8, 1);
+      moonHolder.add(mHalo);
+      var mHit = makeHit(0.45, 'moon');
+      mHit.position.copy(mMesh.position);
+      moonHolder.add(mHit);
+    }
+
+    planetObjs.push({ data:p, pivot:pivot, mesh:mesh, ring:ring, angle:p.angle0, hit:hit, moonHolder:moonHolder });
+  }
+
+  // =============== دوربین و مومنتوم ===============
+  var theta = 0.9, phi = 1.12, camRadius = 34, targetRadius = 34;
+  var galaxyVel = 0;
+  var isGrabbing = false;
+  var lastMoveTime = 0;
+  var recentVelocities = [];
+  var lastInteract = performance.now();
+  var pointers = new Map();
+  var dragState = null;
+  var pinchDist = null;
+
+  canvas.addEventListener('pointerdown', function(e){
+    canvas.setPointerCapture(e.pointerId);
+    pointers.set(e.pointerId, { x:e.clientX, y:e.clientY });
+    lastInteract = performance.now();
+    if(pointers.size === 1){
+      isGrabbing = true;
+      recentVelocities = [];
+      lastMoveTime = performance.now();
+      dragState = { id:e.pointerId, x:e.clientX, y:e.clientY, t:performance.now(), moved:0 };
+    } else {
+      isGrabbing = false;
+      dragState = null;
+      pinchDist = null;
+    }
+  });
+
+  canvas.addEventListener('pointermove', function(e){
+    if(!pointers.has(e.pointerId)) return;
+    var prev = pointers.get(e.pointerId);
+    var x = e.clientX, y = e.clientY;
+    pointers.set(e.pointerId, { x:x, y:y });
+    lastInteract = performance.now();
+    if(pointers.size === 1 && dragState && dragState.id === e.pointerId){
+      var dx = x - prev.x, dy = y - prev.y;
+      dragState.moved += Math.hypot(dx, dy);
+      var spinDelta = dx * 0.008;
+      galaxyGroup.rotation.y += spinDelta;
+      phi = clamp(phi - dy * 0.006, 0.12, Math.PI - 0.12);
+      var now = performance.now();
+      var dtMove = now - lastMoveTime;
+      if (dtMove > 0 && dtMove < 200) {
+        var angularV = spinDelta / (dtMove / 1000);
+        recentVelocities.push({t: now, v: angularV});
+        recentVelocities = recentVelocities.filter(function(s){ return now - s.t < 120; });
+        if (recentVelocities.length > 6) recentVelocities.shift();
+      }
+      lastMoveTime = now;
+      checkSpin(Math.hypot(dx, dy));
+    } else if(pointers.size === 2){
+      var pts = [];
+      pointers.forEach(function(v){ pts.push(v); });
+      var d = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+      if(pinchDist) targetRadius = clamp(targetRadius * (pinchDist / d), 6, 90);
+      pinchDist = d;
+    }
+  });
+
+  function endPointer(e){
+    if(!pointers.has(e.pointerId)) return;
+    pointers.delete(e.pointerId);
+    if(pointers.size < 2) pinchDist = null;
+    if(dragState && dragState.id === e.pointerId){
+      var dt = performance.now() - dragState.t;
+      if(dragState.moved < 10 && dt < 500){
+        var picked = pick(e.clientX, e.clientY);
+        if(picked) openPlanet(picked);
+        else closePanel();
+        galaxyVel = 0;
+      } else {
+        if (recentVelocities.length > 0) {
+          var sumV = 0;
+          for (var i = 0; i < recentVelocities.length; i++) sumV += recentVelocities[i].v;
+          galaxyVel = (sumV / recentVelocities.length) * 0.85;
+          if (galaxyVel > 25) galaxyVel = 25;
+          if (galaxyVel < -25) galaxyVel = -25;
+        }
+      }
+      dragState = null;
+      isGrabbing = false;
+      recentVelocities = [];
+    }
+  }
+  canvas.addEventListener('pointerup', endPointer);
+  canvas.addEventListener('pointercancel', endPointer);
+
+  canvas.addEventListener('wheel', function(e){
+    e.preventDefault();
+    targetRadius = clamp(targetRadius * (1 + e.deltaY * 0.0012), 6, 90);
+    lastInteract = performance.now();
+  }, { passive:false });
+
+  var raycaster = new THREE.Raycaster();
+  function pick(cx, cy){
+    var ndc = new THREE.Vector2(
+      (cx / innerWidth) * 2 - 1,
+      -(cy / innerHeight) * 2 + 1
+    );
+    raycaster.setFromCamera(ndc, camera);
+    var hits = raycaster.intersectObjects(hitMeshes, false);
+    if(hits.length){
+      var id = hits[0].object.userData.planetId;
+      if(id === 'sun') return SUN_DATA;
+      if(id === 'moon') return MOON_DATA;
+      for(var i=0;i<PLANETS.length;i++) if(PLANETS[i].id === id) return PLANETS[i];
+    }
+    return null;
+  }
+
+  // =============== کوییز ===============
+  var QUIZ = [
+    { q:'یک سال خورشیدی مشتری طولانی‌تر است یا زمین؟', type:'planet', a:['jupiter','earth'] },
+    { q:'چرا زمین مکان مناسبی برای زندگی گیاهان و جانوران است؟', type:'planet', a:'earth' },
+    { q:'زیباترین سیاره منظومه شمسی چه نام دارد؟', type:'planet', a:'saturn' },
+    { q:'تقویم کشور ما بر چه اساسی است؟', type:'mc', opts:['بر اساس حرکت زمین به دور خورشید','بر اساس حرکت ماه','بر اساس حرکت مریخ','بر اساس چرخش زمین'], correct:0 },
+    { q:'منظومه شمسی چیست؟', type:'mc', opts:['خورشید و تمام اجرامی که به دور آن می‌گردند','فقط خورشید','فقط سیارات','کهکشان راه شیری'], correct:0 },
+    { q:'کوچک‌ترین سیاره منظومه شمسی چه نام دارد؟', type:'planet', a:'mercury' },
+    { q:'بزرگ‌ترین سیاره منظومه شمسی چه نام دارد؟', type:'planet', a:'jupiter' },
+    { q:'اولین سفر فضایی انسان به کجا بود؟', type:'planet', a:'moon' },
+    { q:'یک دور گردش کامل زمین به دور خورشید چند روز طول می‌کشد؟', type:'planet', a:'earth' },
+    { q:'چرا ستاره‌ها را در هنگام روز در آسمان نمی‌بینیم؟', type:'mc', opts:['نور شدید خورشید آن‌ها را محو می‌کند','ستاره‌ها در روز خاموش می‌شوند','ستاره‌ها پشت خورشید پنهان می‌شوند','ستاره‌ها فقط شب به وجود می‌آیند'], correct:0 },
+    { q:'نام کهکشانی که ما در آن زندگی می‌کنیم چیست؟', type:'mc', opts:['راه شیری','آندرومدا','سحابی خرچنگ','خوشه پروین'], correct:0 },
+    { q:'آیا ماه از خود نور دارد؟', type:'planet', a:'moon' },
+    { q:'نام نزدیک‌ترین ستاره به زمین چیست؟', type:'planet', a:'sun' },
+    { q:'نزدیک‌ترین سیاره به خورشید چه نام دارد؟', type:'planet', a:'mercury' },
+    { q:'به مسیر حرکت سیاره‌ها به دور خورشید چه می‌گویند؟', type:'mc', opts:['مدار','قوس','محور','کهکشان'], correct:0 },
+    { q:'چرا سطح مریخ در آسمان قرمز رنگ است؟', type:'planet', a:'mars' },
+    { q:'از یک دور گردش ماه به دور زمین، چه به وجود می‌آید؟', type:'planet', a:'moon' },
+    { q:'دورترین سیاره منظومه شمسی چه نام دارد؟', type:'planet', a:'neptune' },
+    { q:'در چندمین روز، ماه کامل روشن است و شب مهتابی است؟', type:'planet', a:'moon' },
+    { q:'یک شبانه‌روز چگونه به وجود می‌آید؟', type:'planet', a:'earth' },
+    { q:'هرچه سیاره به خورشید نزدیک‌تر باشد چه تغییری در دما به وجود می‌آید؟', type:'mc', opts:['دما بیشتر می‌شود','دما کمتر می‌شود','دما تغییری نمی‌کند','دما همیشه ثابت است'], correct:0 },
+    { q:'سیاره زمین در آسمان به چه شکلی دیده می‌شود؟', type:'mc', opts:['به شکل یک کره آبی','به شکل یک ستاره','به شکل یک ماه','به شکل یک نقطه قرمز'], correct:0 },
+    { q:'چرا سیاره‌ها و خورشید به همدیگر در آسمان برخورد نمی‌کنند؟', type:'mc', opts:['هر سیاره در مدار مشخص خود به دور خورشید می‌گردد','فاصله آن‌ها بسیار زیاد است','گرانش ماه آن‌ها را نگه می‌دارد','هیچ‌کدام'], correct:0 },
+    { q:'فرق ستاره و سیاره در چیست؟', type:'mc', opts:['ستاره نور تولید می‌کند، سیاره بازتاب می‌دهد','ستاره بزرگ‌تر است','سیاره داغ‌تر است','هیچ فرقی ندارند'], correct:0 },
+    { q:'آیا فاصله همه ستاره‌ها از زمین به یک اندازه است؟', type:'mc', opts:['خیر، فاصله‌ها بسیار متفاوت است','بله، همه یکسان هستند','فقط ستاره‌های صورت فلکی یکسانند','نمی‌دانیم'], correct:0 }
+  ];
+
+  var qIndex = 0;
+  var currentOpen = null;
+  var visited = {};
+
+  var quizQ = document.getElementById('quizQ');
+  var quizNum = document.getElementById('quizNum');
+  var discoveredEl = document.getElementById('discovered');
+  var progressFill = document.getElementById('progressFill');
+  var mcOptions = document.getElementById('mcOptions');
+  var panel = document.getElementById('infoPanel');
+  var pDot = document.getElementById('pDot');
+  var pName = document.getElementById('pName');
+  var pType = document.getElementById('pType');
+  var pStats = document.getElementById('pStats');
+  var pDesc = document.getElementById('pDesc');
+  var pFacts = document.getElementById('pFacts');
+  var btnAns = document.getElementById('btnAns');
+  var btnClose = document.getElementById('btnClose');
+  var toastEl = document.getElementById('toast');
+  var hintEl = document.getElementById('hint');
+
+  function renderQuiz(){
+    if(qIndex >= QUIZ.length){
+      quizQ.textContent = '🎉 همه سوالات پاسخ داده شد!';
+      quizNum.textContent = 'پایان';
+      progressFill.style.width = '100%';
+      mcOptions.innerHTML = '';
+      btnAns.style.display = 'none';
+      return;
+    }
+    var q = QUIZ[qIndex];
+    quizQ.textContent = q.q;
+    quizNum.textContent = 'سوال ' + (qIndex + 1) + ' از ' + QUIZ.length;
+    progressFill.style.width = ((qIndex / QUIZ.length) * 100) + '%';
+
+    mcOptions.innerHTML = '';
+    if(q.type === 'mc'){
+      for(var i=0;i<q.opts.length;i++){
+        (function(idx){
+          var b = document.createElement('button');
+          b.className = 'mcOpt';
+          b.textContent = q.opts[idx];
+          b.onclick = function(){ handleMc(idx, b); };
+          mcOptions.appendChild(b);
+        })(i);
+      }
+    }
+
+    btnAns.style.display = (q.type === 'planet' && currentOpen) ? 'block' : 'none';
+  }
+
+  function handleMc(i, btn){
+    var q = QUIZ[qIndex];
+    if(i === q.correct){
+      btn.classList.add('correct');
+      toast('✅ درست بود! سوال بعدی باز شد.');
+      setTimeout(advanceQuiz, 700);
+    } else {
+      btn.classList.add('wrong');
+      toast('❌ دوباره تلاش کن');
+      setTimeout(function(){ btn.classList.remove('wrong'); }, 800);
+    }
+  }
+
+  function advanceQuiz(){
+    qIndex++;
+    if(qIndex >= QUIZ.length){
+      renderQuiz();
+      closePanel();
+      setTimeout(function(){ document.getElementById('winOverlay').style.display = 'flex'; }, 600);
+    } else {
+      renderQuiz();
+    }
+  }
+
+  function updateDiscovered(){
+    var count = 0;
+    for(var k in visited) if(visited[k]) count++;
+    discoveredEl.textContent = 'اجرام کشف‌شده: ' + count + '/۹';
+  }
+
+  var toastTimer = null;
+  function toast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toastEl.classList.remove('show'); }, 2200);
+  }
+
+  function openPlanet(p){
+    currentOpen = p.id;
+    if(p.id !== 'sun' && !visited[p.id]){
+      visited[p.id] = true;
+      updateDiscovered();
+    }
+
+    var hex = '#' + p.color.toString(16);
+    while(hex.length < 7) hex = '#' + '0' + hex.slice(1);
+    pDot.style.background = hex;
+    pDot.style.color = hex;
+    pName.textContent = p.name;
+    pType.textContent = p.type;
+
+    pStats.innerHTML = '';
+    for(var k in p.stats){
+      var d = document.createElement('div');
+      d.className = 'stat';
+      d.innerHTML = '<b>' + k + '</b><span>' + p.stats[k] + '</span>';
+      pStats.appendChild(d);
+    }
+    pDesc.textContent = p.desc;
+
+    pFacts.innerHTML = '';
+    if(p.facts){
+      for(var f=0;f<p.facts.length;f++){
+        var fc = document.createElement('div');
+        fc.className = 'factCard';
+        fc.innerHTML = '<b>📖 ' + p.facts[f].t + '</b><span>' + p.facts[f].d + '</span>';
+        pFacts.appendChild(fc);
+      }
+    }
+
+    var q = QUIZ[qIndex];
+    btnAns.style.display = (q && q.type === 'planet') ? 'block' : 'none';
+    panel.classList.add('open');
+  }
+
+  function closePanel(){
+    panel.classList.remove('open');
+    currentOpen = null;
+    btnAns.style.display = 'none';
+  }
+
+  btnClose.addEventListener('click', closePanel);
+
+  btnAns.addEventListener('click', function(){
+    var q = QUIZ[qIndex];
+    if(!q || q.type !== 'planet' || !currentOpen) return;
+    var isCorrect = false;
+    if(Array.isArray(q.a)) isCorrect = q.a.indexOf(currentOpen) !== -1;
+    else isCorrect = (q.a === currentOpen);
+    if(isCorrect){
+      toast('✅ درست بود! سوال بعدی باز شد.');
+      advanceQuiz();
+    } else {
+      toast('❌ این جواب سوال نیست. سیارات دیگر را کاوش کن.');
+    }
+  });
+
+  // =============== ایستر اگ ===============
+  function makeNameSprite(text, color){
+    var cv = document.createElement('canvas');
+    cv.width = 1024; cv.height = 256;
+    var ctx = cv.getContext('2d');
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 60;
+    ctx.font = 'bold 130px Vazirmatn, Tahoma, Arial, sans-serif';
+    ctx.fillStyle = color;
+    ctx.fillText(text, 512, 128);
+    ctx.fillText(text, 512, 128);
+    ctx.shadowBlur = 25;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(text, 512, 128);
+    return new THREE.Sprite(new THREE.SpriteMaterial({
+      map: new THREE.CanvasTexture(cv),
+      transparent: true, depthWrite: false, depthTest: false,
+      blending: THREE.AdditiveBlending, opacity: 1
+    }));
+  }
+
+  var easterActive = false;
+  var easterTime = 0;
+  var easterSprites = [];
+  var lastEaster = 0;
+  var spinWindow = [];
+
+  function checkSpin(speed){
+    var now = performance.now();
+    spinWindow.push({ t: now, s: speed });
+    var filtered = [];
+    for(var i=0;i<spinWindow.length;i++){
+      if(now - spinWindow[i].t < 450) filtered.push(spinWindow[i]);
+    }
+    spinWindow = filtered;
+    var total = 0;
+    for(var j=0;j<spinWindow.length;j++) total += spinWindow[j].s;
+    if(total > 500 && now - lastEaster > 15000 && !easterActive){
+      lastEaster = now;
+      spinWindow = [];
+      triggerEasterEgg();
+    }
+  }
+
+  function triggerEasterEgg(){
+    easterActive = true;
+    easterTime = 0;
+    var names = [
+      { text: 'نگار میرزائی', color: '#ffd27a', dir: new THREE.Vector3(1, 0.8, 0.6).normalize() },
+      { text: 'پوریا مرادی', color: '#7fd6e0', dir: new THREE.Vector3(-1, 0.7, 0.9).normalize() }
+    ];
+    for(var i=0;i<names.length;i++){
+      var n = names[i];
+      var sp = makeNameSprite(n.text, n.color);
+      sp.position.copy(n.dir.clone().multiplyScalar(1.6));
+      sp.scale.set(6, 1.5, 1);
+      sp.userData = {
+        dir: n.dir.clone(),
+        speed: 5 + Math.random() * 2
+      };
+      scene.add(sp);
+      easterSprites.push(sp);
+    }
+  }
+
+  // =============== حلقه انیمیشن ===============
+  var clock = new THREE.Clock();
+  function animate(){
+    requestAnimationFrame(animate);
+    var dt = Math.min(clock.getDelta(), 0.05);
+
+    if (!isGrabbing) {
+      galaxyGroup.rotation.y += galaxyVel * dt;
+      galaxyVel *= Math.exp(-0.8 * dt);
+      if (Math.abs(galaxyVel) < 0.02) galaxyVel = 0;
+      if (Math.abs(galaxyVel) < 0.02) galaxyGroup.rotation.y += dt * 0.008;
+    } else {
+      galaxyVel *= Math.exp(-15 * dt);
+      if (Math.abs(galaxyVel) < 0.02) galaxyVel = 0;
+    }
+
+    if (!easterActive && Math.abs(galaxyVel) > 12) {
+      var nowT = performance.now();
+      if (nowT - lastEaster > 15000) {
+        lastEaster = nowT;
+        triggerEasterEgg();
+      }
+    }
+
+    for(var i=0;i<planetObjs.length;i++){
+      var o = planetObjs[i];
+      o.angle += dt * o.data.speed * 0.25;
+      o.pivot.position.set(
+        Math.cos(o.angle) * o.data.orbit,
+        0,
+        Math.sin(o.angle) * o.data.orbit
+      );
+      o.mesh.rotation.y += dt * 0.6;
+      if(o.moonHolder) o.moonHolder.rotation.y += dt * 0.9;
+    }
+
+    if(easterActive){
+      easterTime += dt;
+      for(var k=0;k<easterSprites.length;k++){
+        var sp = easterSprites[k];
+        sp.position.x += sp.userData.dir.x * sp.userData.speed * dt;
+        sp.position.y += sp.userData.dir.y * sp.userData.speed * dt;
+        sp.position.z += sp.userData.dir.z * sp.userData.speed * dt;
+        sp.userData.speed *= Math.exp(-0.35 * dt);
+        var fade = Math.max(0, 1 - easterTime / 7);
+        sp.material.opacity = fade;
+        var grow = Math.min(1, 0.5 + easterTime * 2);
+        sp.scale.set(6 * grow, 1.5 * grow, 1);
+      }
+      if(easterTime > 7){
+        easterActive = false;
+        for(var m=0;m<easterSprites.length;m++){
+          scene.remove(easterSprites[m]);
+          if(easterSprites[m].material.map) easterSprites[m].material.map.dispose();
+          easterSprites[m].material.dispose();
+        }
+        easterSprites = [];
+      }
+    }
+
+    if(performance.now() - lastInteract > 4000 && pointers.size === 0 && Math.abs(galaxyVel) < 0.02){
+      theta += dt * 0.04;
+    }
+
+    camRadius += (targetRadius - camRadius) * Math.min(1, dt * 8);
+    camera.position.set(
+      camRadius * Math.sin(phi) * Math.cos(theta),
+      camRadius * Math.cos(phi),
+      camRadius * Math.sin(phi) * Math.sin(theta)
+    );
+    camera.lookAt(0, 0, 0);
+
+    renderer.render(scene, camera);
+  }
+
+  renderQuiz();
+  updateDiscovered();
+  animate();
+
+  var startBtn = document.getElementById('startBtn');
+  startBtn.disabled = false;
+  startBtn.textContent = 'شروع کاوش';
+
+  startBtn.addEventListener('click', function(){
+    startOverlay.style.opacity = '0';
+    setTimeout(function(){ startOverlay.style.display = 'none'; }, 500);
+    lastInteract = performance.now();
+    setTimeout(function(){ hintEl.style.opacity = '0'; }, 9000);
+  });
+
+  document.getElementById('restartBtn').addEventListener('click', function(){
+    qIndex = 0;
+    visited = {};
+    document.getElementById('winOverlay').style.display = 'none';
+    renderQuiz();
+    updateDiscovered();
+    closePanel();
+  });
+
+  addEventListener('resize', function(){
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  });
+
+})();
+</script>
+</body>
+</html>
+```
