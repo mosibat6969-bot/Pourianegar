@@ -72,7 +72,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:syste
 <div id="hint">بکش تا بچرخد • رها کن تا با سرعت بچرخد • تپ = توقف</div>
 <div id="startOverlay">
   <div class="title">🌌 کهکشان راه شیری</div>
-  <div class="sub">یک سفر اکتشافی در منظومه شمسی.<br>با انگشت کهکشان را بچرخان، رهایش کن تا با مومنتوم بچرخد، روی سیارات و ماه بزن و به ۲۵ سوال بالای صفحه جواب بده.<br>هر جواب درست، سوال بعدی را باز می‌کند.<br><span style="font-size:11px;color:#6f7fb0">💫 شاید یک راز در دل خورشید باشد...</span></div>
+  <div class="sub">یک سفر اکتشافی در منظومه شمسی.<br>با انگشت منظومه را بچرخان، رهایش کن تا با مومنتوم بچرخد، روی سیارات و ماه بزن و به ۲۵ سوال بالای صفحه جواب بده.<br><span style="font-size:11px;color:#6f7fb0">💫 شاید یک راز در دل خورشید باشد...</span></div>
   <button class="startBtn" id="startBtn">شروع کاوش</button>
 </div>
 <div id="winOverlay">
@@ -98,10 +98,9 @@ resize();
 addEventListener('resize', resize);
 const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
 
-// ستاره‌های ریزتر و بیشتر
 const galaxyStars = [], bgStars = [];
 (function(){
-  const R=34, BRANCHES=4, COUNT=10000;
+  const R=34, BRANCHES=4, COUNT=15000;
   for(let i=0;i<COUNT;i++){
     const r = Math.pow(Math.random(), 1.4) * R;
     const branchAngle = (i % BRANCHES) / BRANCHES * Math.PI * 2;
@@ -116,8 +115,7 @@ const galaxyStars = [], bgStars = [];
     else { const k=(t-0.5)/0.5; col=[207+(111-207)*k, 224+(125-224)*k, 255+(255-255)*k]; }
     if(Math.random() < 0.04) col = [255, 122, 184];
     const c = `rgba(${col[0]|0},${col[1]|0},${col[2]|0},0.95)`;
-    // سایز پایه بسیار ریز شد
-    galaxyStars.push({ x: Math.cos(angle)*r+rx, y: ry, z: Math.sin(angle)*r+rz, c: c, s: 0.01 + Math.random()*0.02 });
+    galaxyStars.push({ x: Math.cos(angle)*r+rx, y: ry, z: Math.sin(angle)*r+rz, c: c, s: 0.03 + Math.random()*0.05 });
   }
   for(let i=0;i<4000;i++){
     const r = Math.pow(Math.random(), 2.2) * 7;
@@ -137,36 +135,37 @@ const galaxyStars = [], bgStars = [];
   }
 })();
 
+// اندازه‌ها و فواصل به واقعیت نزدیک‌تر شده‌اند
 const PLANETS = [
-  { id:'mercury', name:'عطارد', type:'سیاره سنگی', color:[154,143,134], size:0.30, orbit:3.2, speed:1.6, angle0:0.5,
+  { id:'mercury', name:'عطارد', type:'سیاره سنگی', color:[154,143,134], size:0.22, orbit:4.5, speed:1.6, angle0:0.5,
     stats:{'دمای سطح':'−۱۷۳ تا ۴۲۷ °C','طول روز':'۵۹ روز زمینی','طول سال':'۸۸ روز زمینی','تعداد قمر':'۰'},
     desc:'عطارد کوچک‌ترین سیاره منظومه شمسی و نزدیک‌ترین سیاره به خورشید است. جو آن تقریباً وجود ندارد و سطحش پر از دهانه‌های برخوردی است.' },
-  { id:'venus', name:'زهره', type:'سیاره سنگی', color:[232,201,138], size:0.42, orbit:4.4, speed:1.15, angle0:2.1,
+  { id:'venus', name:'زهره', type:'سیاره سنگی', color:[232,201,138], size:0.35, orbit:6.5, speed:1.15, angle0:2.1,
     stats:{'دمای سطح':'۴۶۲ °C','طول روز':'۲۴۳ روز زمینی','طول سال':'۲۲۵ روز زمینی','تعداد قمر':'۰'},
     desc:'زهره گرم‌ترین سیاره منظومه شمسی است. جو غلیظ دی‌اکسید کربن آن اثر گلخانه‌ای شدیدی ایجاد می‌کند و برخلاف بقیه سیارات در جهت مخالف می‌چرخد.' },
-  { id:'earth', name:'زمین', type:'سیاره سنگی', color:[58,123,213], size:0.45, orbit:5.6, speed:0.9, angle0:4.0,
+  { id:'earth', name:'زمین', type:'سیاره سنگی', color:[58,123,213], size:0.38, orbit:9.0, speed:0.9, angle0:4.0,
     stats:{'دمای سطح':'میانگین ۱۵ °C','طول روز':'۲۴ ساعت','طول سال':'۳۶۵ روز','تعداد قمر':'۱'},
-    desc:'زمین تنها سیاره‌ای است که در آن حیات شناخته‌شده وجود دارد. وجود آب مایع، جو مناسب و فاصله مناسب از خورشید، شرایط زندگی گیاهان و جانوران را فراهم کرده است. چرخش زمین به دور خودش شبانه‌روز را به وجود می‌آورد و حرکت آن به دور خورشید مبنای تقویم شمسی است. 🌙 ماه به دور زمین می‌گردد — روی آن کلیک کن!' },
-  { id:'mars', name:'مریخ', type:'سیاره سنگی', color:[193,68,14], size:0.34, orbit:6.8, speed:0.75, angle0:5.6,
+    desc:'زمین تنها سیاره‌ای است که در آن حیات شناخته‌شده وجود دارد. وجود آب مایع، جو مناسب و فاصله مناسب از خورشید، شرایط زندگی گیاهان و جانوران را فراهم کرده است. چرخش زمین به شبانه‌روز و حرکت آن به دور خورشید مبنای تقویم شمسی است. 🌙 ماه به دور زمین می‌گردد.' },
+  { id:'mars', name:'مریخ', type:'سیاره سنگی', color:[193,68,14], size:0.26, orbit:12.5, speed:0.75, angle0:5.6,
     stats:{'دمای سطح':'میانگین −۶۳ °C','طول روز':'۲۴.۶ ساعت','طول سال':'۶۸۷ روز زمینی','تعداد قمر':'۲'},
     desc:'مریخ به دلیل وجود اکسید آهن در خاکش «سیاره سرخ» نامیده می‌شود و به همین دلیل در آسمان قرمز رنگ دیده می‌شود. بلندترین کوه منظومه شمسی، المپوس مونس، در این سیاره قرار دارد.' },
-  { id:'jupiter', name:'مشتری', type:'غول گازی', color:[216,168,120], size:0.95, orbit:8.6, speed:0.42, angle0:1.2,
+  { id:'jupiter', name:'مشتری', type:'غول گازی', color:[216,168,120], size:1.0, orbit:19.0, speed:0.42, angle0:1.2,
     stats:{'دمای سطح':'−۱۴۵ °C','طول روز':'۹.۹ ساعت','طول سال':'۱۲ سال زمینی','تعداد قمر':'۹۵'},
     desc:'مشتری بزرگ‌ترین سیاره منظومه شمسی است. یک سال آن حدود ۱۲ برابر زمین طول می‌کشد. لکه سرخ بزرگ آن یک طوفان عظیم است.' },
-  { id:'saturn', name:'زحل', type:'غول گازی', color:[227,209,160], size:0.82, orbit:10.6, speed:0.31, angle0:3.3, ring:true,
+  { id:'saturn', name:'زحل', type:'غول گازی', color:[227,209,160], size:0.85, orbit:28.0, speed:0.31, angle0:3.3, ring:true,
     stats:{'دمای سطح':'−۱۷۸ °C','طول روز':'۱۰.۷ ساعت','طول سال':'۲۹ سال زمینی','تعداد قمر':'۲۷۴'},
     desc:'زحل زیباترین سیاره منظومه شمسی است و به خاطر حلقه‌های باشکوهش شهرت دارد. این حلقه‌ها از میلیاردها ذره یخ و سنگ ساخته شده‌اند.' },
-  { id:'uranus', name:'اورانوس', type:'غول یخی', color:[127,214,224], size:0.60, orbit:12.6, speed:0.22, angle0:5.0,
+  { id:'uranus', name:'اورانوس', type:'غول یخی', color:[127,214,224], size:0.55, orbit:37.0, speed:0.22, angle0:5.0,
     stats:{'دمای سطح':'−۲۲۴ °C','طول روز':'۱۷.۲ ساعت','طول سال':'۸۴ سال زمینی','تعداد قمر':'۲۸'},
     desc:'اورانوس سردترین جو منظومه شمسی را دارد. این سیاره با زاویه ۹۸ درجه به پهلو می‌چرخد. رنگ آبی آن به دلیل وجود متان در جو است.' },
-  { id:'neptune', name:'نپتون', type:'غول یخی', color:[59,91,219], size:0.58, orbit:14.6, speed:0.17, angle0:0.2,
+  { id:'neptune', name:'نپتون', type:'غول یخی', color:[59,91,219], size:0.52, orbit:46.0, speed:0.17, angle0:0.2,
     stats:{'دمای سطح':'−۲۱۴ °C','طول روز':'۱۶ ساعت','طول سال':'۱۶۵ سال زمینی','تعداد قمر':'۱۶'},
     desc:'نپتون دورترین سیاره منظومه شمسی و دارای سریع‌ترین بادهای منظومه شمسی است. این سیاره به کمک محاسبات ریاضی کشف شد.' }
 ];
 const MOON_DATA = {
   id:'moon', name:'ماه', type:'قمر طبیعی زمین', color:[208,208,208],
   stats:{'فاصله از زمین':'۳۸۴,۴۰۰ کیلومتر','دوره گردش':'۲۷.۳ روز','منبع نور':'بازتاب نور خورشید','اولین سفر انسان':'آپولو ۱۱ (۱۹۶۹)'},
-  desc:'ماه تنها قمر طبیعی زمین است. ماه از خود نوری ندارد و نور خورشید را بازتاب می‌دهد. گردش ماه به دور زمین باعث به وجود آمدن فازهای ماه می‌شود. در روزهای ۱۴ و ۱۵ هر ماه قمری، ماه کامل و شب مهتابی است. اولین سفر فضایی انسان در سال ۱۹۶۹ با آپولو ۱۱ به ماه انجام شد.'
+  desc:'ماه تنها قمر طبیعی زمین است. ماه از خود نوری ندارد و نور خورشید را بازتاب می‌دهد. گردش ماه به دور زمین باعث به وجود آمدن فازهای ماه می‌شود. در روزهای ۱۴ و ۱۵ هر ماه قمری، ماه کامل و شب مهتابی است.'
 };
 const SUN_DATA = {
   id:'sun', name:'خورشید', type:'ستاره (کوتوله زرد)', color:[255,221,136],
@@ -232,14 +231,15 @@ PLANETS.forEach(p => {
   }
   planetTex[p.id] = cv;
 });
-  let theta = 0.9, phi = 1.12, camRadius = 34, targetRadius = 34;
-let galaxyAngle = 0, galaxyVel = 0;
+  let theta = 0.9, phi = 1.12, camRadius = 50, targetRadius = 50;
+let thetaVel = 0;
 let isGrabbing = false, lastMoveTime = 0, recentVelocities = [];
 let lastInteract = performance.now();
 const pointers = new Map();
 let dragState = null, pinchDist = null;
 let easterActive = false, easterTime = 0, easterSprites = [];
 let lastEaster = 0;
+let galaxyAngle = 0;
 
 const camPos = {x:0,y:0,z:0};
 const view = {rx:1,ry:0,rz:0, ux:0,uy:1,uz:0, fx:0,fy:0,fz:-1};
@@ -275,16 +275,16 @@ let sunScreen = { x: 0, y: 0, r: 0 };
 function drawSun(){
   const p = project(0, 0, 0);
   if(!p) return;
-  const screenR = (focal / p.z) * 1.0;
-  let g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, screenR * 14);
+  const screenR = (focal / p.z) * 2.0; // خورشید بزرگتر شده
+  let g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, screenR * 8);
   g.addColorStop(0, 'rgba(255,255,230,1)');
-  g.addColorStop(0.1, 'rgba(255,245,180,0.85)');
-  g.addColorStop(0.25, 'rgba(255,210,100,0.5)');
-  g.addColorStop(0.5, 'rgba(255,150,60,0.15)');
+  g.addColorStop(0.15, 'rgba(255,245,180,0.8)');
+  g.addColorStop(0.4, 'rgba(255,210,100,0.4)');
+  g.addColorStop(0.7, 'rgba(255,150,60,0.1)');
   g.addColorStop(1, 'rgba(255,120,40,0)');
   ctx.fillStyle = g;
   ctx.beginPath();
-  ctx.arc(p.x, p.y, screenR * 14, 0, Math.PI*2);
+  ctx.arc(p.x, p.y, screenR * 8, 0, Math.PI*2);
   ctx.fill();
   
   ctx.fillStyle = '#ffedb3';
@@ -297,7 +297,7 @@ function drawSun(){
   ctx.arc(p.x, p.y, screenR * 0.85, 0, Math.PI*2);
   ctx.fill();
   
-  sunScreen = { x: p.x, y: p.y, r: Math.max(screenR * 2.8, 35) };
+  sunScreen = { x: p.x, y: p.y, r: Math.max(screenR * 2.8, 40) };
 }
 
 function drawPlanet(o){
@@ -356,7 +356,7 @@ function drawPlanet(o){
 function drawMoon(){
   const p = project(moonObj.wx, moonObj.wy, moonObj.wz);
   if(!p){ moonObj.screen = null; return; }
-  const screenR = (focal / p.z) * 0.14;
+  const screenR = (focal / p.z) * 0.1;
   if(screenR < 0.3){ moonObj.screen = null; return; }
   ctx.save();
   ctx.beginPath();
@@ -402,7 +402,7 @@ function drawEaster(){
     ctx.fillText(sp.text, p.x, p.y);
     ctx.restore();
   }
-          }
+    }
   function render(){
   ctx.fillStyle = '#02030a';
   ctx.fillRect(0, 0, W, H);
@@ -449,16 +449,17 @@ function animate(t){
   lastTime = t;
   
   if(!isGrabbing){
-    galaxyAngle += galaxyVel * dt;
-    galaxyVel *= Math.exp(-0.8 * dt);
-    if(Math.abs(galaxyVel) < 0.02) galaxyVel = 0;
-    if(Math.abs(galaxyVel) < 0.02) galaxyAngle += dt * 0.008;
+    theta += thetaVel * dt;
+    thetaVel *= Math.exp(-0.8 * dt);
+    if(Math.abs(thetaVel) < 0.02) thetaVel = 0;
   } else {
-    galaxyVel *= Math.exp(-15 * dt);
-    if(Math.abs(galaxyVel) < 0.02) galaxyVel = 0;
+    thetaVel *= Math.exp(-15 * dt);
+    if(Math.abs(thetaVel) < 0.02) thetaVel = 0;
   }
   
-  if(!easterActive && Math.abs(galaxyVel) > 12){
+  galaxyAngle += dt * 0.005; // چرخش آرام کهکشان
+  
+  if(!easterActive && Math.abs(thetaVel) > 12){
     const now = performance.now();
     if(now - lastEaster > 15000){ lastEaster = now; triggerEasterEgg(); }
   }
@@ -470,9 +471,9 @@ function animate(t){
     o.wz = Math.sin(o.angle) * o.data.orbit;
   }
   moonAngle += dt * 0.9;
-  moonObj.wx = earthObj.wx + Math.cos(moonAngle) * 1.15;
+  moonObj.wx = earthObj.wx + Math.cos(moonAngle) * 1.2;
   moonObj.wy = 0.15;
-  moonObj.wz = earthObj.wz + Math.sin(moonAngle) * 1.15;
+  moonObj.wz = earthObj.wz + Math.sin(moonAngle) * 1.2;
   
   if(easterActive){
     easterTime += dt;
@@ -485,7 +486,7 @@ function animate(t){
     if(easterTime > 7) easterActive = false;
   }
   
-  if(performance.now() - lastInteract > 4000 && pointers.size === 0 && Math.abs(galaxyVel) < 0.02){
+  if(performance.now() - lastInteract > 4000 && pointers.size === 0 && Math.abs(thetaVel) < 0.02){
     theta += dt * 0.04;
   }
   camRadius += (targetRadius - camRadius) * Math.min(1, dt * 8);
@@ -527,12 +528,12 @@ canvas.addEventListener('pointermove', e => {
     const dx = x - prev.x, dy = y - prev.y;
     dragState.moved += Math.hypot(dx, dy);
     const spinDelta = dx * 0.008;
-    galaxyAngle += spinDelta;
+    theta -= spinDelta;
     phi = clamp(phi - dy * 0.006, 0.12, Math.PI - 0.12);
     const now = performance.now();
     const dtMove = now - lastMoveTime;
     if(dtMove > 0 && dtMove < 200){
-      const av = spinDelta / (dtMove / 1000);
+      const av = -spinDelta / (dtMove / 1000);
       recentVelocities.push({ t: now, v: av });
       recentVelocities = recentVelocities.filter(s => now - s.t < 120);
       if(recentVelocities.length > 6) recentVelocities.shift();
@@ -541,7 +542,7 @@ canvas.addEventListener('pointermove', e => {
   } else if(pointers.size === 2){
     const pts = [...pointers.values()];
     const d = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
-    if(pinchDist) targetRadius = clamp(targetRadius * (pinchDist / d), 6, 90);
+    if(pinchDist) targetRadius = clamp(targetRadius * (pinchDist / d), 6, 150);
     pinchDist = d;
   }
 });
@@ -556,14 +557,14 @@ function endPointer(e){
       const picked = pick(e.clientX, e.clientY);
       if(picked) openPlanet(picked);
       else closePanel();
-      galaxyVel = 0;
+      thetaVel = 0;
     } else {
       if(recentVelocities.length > 0){
         let sum = 0;
         for(const v of recentVelocities) sum += v.v;
-        galaxyVel = (sum / recentVelocities.length) * 0.85;
-        if(galaxyVel > 25) galaxyVel = 25;
-        if(galaxyVel < -25) galaxyVel = -25;
+        thetaVel = (sum / recentVelocities.length) * 0.85;
+        if(thetaVel > 25) thetaVel = 25;
+        if(thetaVel < -25) thetaVel = -25;
       }
     }
     dragState = null;
@@ -575,7 +576,7 @@ canvas.addEventListener('pointerup', endPointer);
 canvas.addEventListener('pointercancel', endPointer);
 canvas.addEventListener('wheel', e => {
   e.preventDefault();
-  targetRadius = clamp(targetRadius * (1 + e.deltaY * 0.0012), 6, 90);
+  targetRadius = clamp(targetRadius * (1 + e.deltaY * 0.0012), 6, 150);
   lastInteract = performance.now();
 }, { passive:false });
 
